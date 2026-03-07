@@ -6,7 +6,9 @@ Type or paste markdown on the left, see a live preview on the right, and print t
 
 ## Usage
 
-Open `index.html` in a browser. Click **Download PDF** to generate a PDF via your browser's print-to-PDF.
+Try it at **https://commonwealth-labs.github.io/mdpdf/** or open `docs/index.html` locally.
+
+Click **Download PDF** to generate a PDF via your browser's print-to-PDF.
 
 ## Features
 
