@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>mdpdf - Markdown to PDF</title>
+  <script src="libs/marked/15.0.12/marked.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: #1a1a2e;
+      color: #fff;
+    }
+
+    header h1 {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    header h1 span { color: #7c83ff; }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+    }
+
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-primary {
+      background: #7c83ff;
+      color: #fff;
+    }
+
+    .btn-primary:hover { background: #6168e0; }
+    .btn-primary:disabled { background: #999; cursor: not-allowed; }
+
+    .container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .pane {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .pane-header {
+      padding: 8px 16px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #888;
+      background: #eee;
+      border-bottom: 1px solid #ddd;
+    }
+
+    textarea {
+      flex: 1;
+      padding: 20px;
+      border: none;
+      resize: none;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      background: #fff;
+      outline: none;
+    }
+
+    .preview-wrapper {
+      flex: 1;
+      overflow-y: auto;
+      background: #fff;
+      border-left: 1px solid #ddd;
+    }
+
+    .preview {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    /* Markdown rendered content styles */
+    .preview h1, .preview h2, .preview h3,
+    .preview h4, .preview h5, .preview h6 {
+      margin-top: 1.4em;
+      margin-bottom: 0.6em;
+      font-weight: 600;
+      line-height: 1.3;
+      break-after: avoid;
+    }
+
+    .preview h1 { font-size: 2em; border-bottom: 1px solid #eee; padding-bottom: 0.3em; }
+    .preview h2 { font-size: 1.5em; border-bottom: 1px solid #eee; padding-bottom: 0.3em; }
+    .preview h3 { font-size: 1.25em; }
+
+    .preview p { margin-bottom: 1em; }
+
+    .preview ul, .preview ol {
+      margin-bottom: 1em;
+      padding-left: 2em;
+    }
+
+    .preview li { margin-bottom: 0.25em; }
+
+    .preview code {
+      background: #f0f0f0;
+      padding: 0.2em 0.4em;
+      border-radius: 3px;
+      font-size: 0.9em;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+
+    .preview pre {
+      background: #f6f8fa;
+      border-radius: 6px;
+      padding: 16px;
+      overflow-x: auto;
+      margin-bottom: 1em;
+    }
+
+    .preview pre code {
+      background: none;
+      padding: 0;
+    }
+
+    .preview blockquote {
+      border-left: 4px solid #ddd;
+      padding: 0.5em 1em;
+      margin: 0 0 1em 0;
+      color: #666;
+    }
+
+    .preview table {
+      border-collapse: collapse;
+      margin-bottom: 1em;
+      width: 100%;
+    }
+
+    .preview th, .preview td {
+      border: 1px solid #ddd;
+      padding: 8px 12px;
+      text-align: left;
+    }
+
+    .preview th { background: #f6f8fa; font-weight: 600; }
+
+    .preview img { max-width: 100%; }
+
+    .preview hr {
+      border: none;
+      border-top: 1px solid #ddd;
+      margin: 1.5em 0;
+    }
+
+    .preview a { color: #7c83ff; }
+
+    @media (max-width: 768px) {
+      .container { flex-direction: column; }
+      .preview-wrapper { border-left: none; border-top: 1px solid #ddd; }
+    }
+
+    @media print {
+      body, .container { display: block; height: auto; background: #fff; }
+      header, .pane:first-child, .pane-header { display: none; }
+      .preview-wrapper {
+        border: none;
+        overflow: visible;
+      }
+      .preview {
+        max-width: none;
+        padding: 0;
+        font-size: 12pt;
+      }
+      .preview pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+      .preview table, .preview img, .preview pre, .preview blockquote {
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><span>md</span>pdf <small style="font-size:0.5em;font-weight:400;color:#888">v0.1.0</small></h1>
+    <div class="toolbar">
+      <button class="btn-primary" id="downloadBtn">Download PDF</button>
+    </div>
+  </header>
+  <div class="container">
+    <div class="pane">
+      <div class="pane-header">Markdown</div>
+      <textarea id="editor" spellcheck="false" placeholder="Type or paste your markdown here...">## Hello, mdpdf
+
+This is a **client-side** markdown to PDF converter. No server required.
+
+### Features
+
+- Live preview as you type
+- Clean PDF output
+- Runs entirely in the browser
+- Works on GitHub Pages
+
+### Code Example
+
+```javascript
+const greeting = "Hello, world!";
+console.log(greeting);
+```
+
+### A Table
+
+| Feature | Status |
+|---------|--------|
+| Markdown parsing | Done |
+| PDF export | Done |
+| Syntax highlighting | Planned |
+
+> "Simplicity is the ultimate sophistication." - Leonardo da Vinci
+
+---
+
+Built with [marked](https://github.com/markedjs/marked).
+</textarea>
+    </div>
+    <div class="pane">
+      <div class="pane-header">Preview</div>
+      <div class="preview-wrapper">
+        <div class="preview" id="preview"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const editor = document.getElementById('editor');
+    const preview = document.getElementById('preview');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    function renderPreview() {
+      preview.innerHTML = marked.parse(editor.value);
+    }
+
+    editor.addEventListener('input', renderPreview);
+    renderPreview();
+
+    downloadBtn.addEventListener('click', () => {
+      window.print();
+    });
+  </script>
+</body>
+</html>
