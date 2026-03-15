@@ -269,6 +269,17 @@ Built with [marked](https://github.com/markedjs/marked).
       preview.innerHTML = marked.parse(editor.value);
     }
 
+    editor.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const start = editor.selectionStart;
+        const end = editor.selectionEnd;
+        editor.value = editor.value.substring(0, start) + '    ' + editor.value.substring(end);
+        editor.selectionStart = editor.selectionEnd = start + 4;
+        renderPreview();
+      }
+    });
+
     editor.addEventListener('input', renderPreview);
     renderPreview();
 
