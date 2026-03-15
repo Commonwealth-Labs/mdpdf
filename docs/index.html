@@ -265,8 +265,12 @@ Built with [marked](https://github.com/markedjs/marked).
     const preview = document.getElementById('preview');
     const downloadBtn = document.getElementById('downloadBtn');
 
+    const saved = localStorage.getItem('mdpdf-content');
+    if (saved !== null) editor.value = saved;
+
     function renderPreview() {
       preview.innerHTML = marked.parse(editor.value);
+      localStorage.setItem('mdpdf-content', editor.value);
     }
 
     editor.addEventListener('keydown', (e) => {
